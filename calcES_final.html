@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Calc Pro — ARYAN Haripal</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+:root{
+  --bg:#f0f0f5;
+  --display-bg:#e8f5e9;
+  --display-border:#b2dfdb;
+  --text:#1c1c1e;
+  --muted:#8e8e93;
+  --orange:#ff9500;
+  --purple:#7c3aed;
+  --btn-num:#ffffff;
+  --btn-fn:#e0e0e8;
+  --btn-op:#ff9500;
+  --btn-sci:#dbeafe;
+  --btn-sci-text:#1e40af;
+}
+body{background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;}
+.container{width:100%;max-width:440px;padding:14px 12px 26px;display:flex;flex-direction:column;gap:0;}
+
+/* Badge */
+.badge{text-align:center;font-size:11px;font-weight:800;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.badge span{color:var(--orange);}
+
+/* ── DISPLAY ── */
+.display-box{
+  background:var(--display-bg);
+  border:1.5px solid var(--display-border);
+  border-radius:16px;
+  padding:10px 14px 12px;
+  min-height:130px;
+  margin-bottom:10px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.04);
+  display:flex;flex-direction:column;justify-content:space-between;
+  cursor:text;
+  position:relative;
+}
+
+/* Editable input line (top) */
+.input-area{
+  width:100%;
+  min-height:38px;
+  font-size:22px;
+  font-weight:600;
+  color:var(--text);
+  font-family:'Nunito',sans-serif;
+  background:transparent;
+  border:none;outline:none;
+  text-align:right;
+  word-break:break-all;
+  caret-color:var(--orange);
+  user-select:text;
+  -webkit-user-select:text;
+  resize:none;
+  overflow:hidden;
+  line-height:1.3;
+}
+
+/* Result area (bottom) */
+.result-area{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+  min-height:56px;
+  justify-content:flex-end;
+}
+
+.result-decimal{
+  font-size:36px;
+  font-weight:300;
+  color:var(--text);
+  letter-spacing:-1px;
+  line-height:1;
+  text-align:right;
+  transition:font-size 0.1s;
+}
+.result-decimal.sm{font-size:24px;}
+.result-decimal.xs{font-size:18px;}
+
+/* Fraction display */
+.fraction-wrap{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  justify-content:flex-end;
+}
+.fraction{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:14px;
+  font-weight:700;
+  color:#1e40af;
+  line-height:1;
+  gap:1px;
+}
+.frac-top{border-bottom:2px solid #1e40af;padding:0 4px 2px;min-width:20px;text-align:center;}
+.frac-bot{padding:2px 4px 0;min-width:20px;text-align:center;}
+.frac-whole{font-size:16px;font-weight:700;color:#1e40af;}
+
+/* S⇔D toggle */
+.sd-btn{
+  position:absolute;bottom:10px;left:12px;
+  font-size:10px;font-weight:800;
+  background:var(--btn-fn);color:var(--muted);
+  border:none;border-radius:8px;padding:3px 9px;cursor:pointer;
+  transition:all 0.15s;
+}
+.sd-btn:active{filter:brightness(0.9);}
+
+/* Mode bar */
+.mode-bar{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+.mode-btn{font-size:11px;font-weight:800;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;letter-spacing:1px;transition:all 0.18s;background:var(--btn-fn);color:var(--muted);}
+.mode-btn.shift-on{background:var(--orange);color:#fff;box-shadow:0 2px 10px rgba(255,149,0,0.4);}
+.mode-btn.alpha-on{background:var(--purple);color:#fff;box-shadow:0 2px 10px rgba(124,58,237,0.4);}
+.mode-btn.deg-on{background:#1c1c1e;color:#fff;}
+.spacer{flex:1;}
+
+/* Sci panel */
+.sci-panel{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;}
+.sep{height:1px;background:linear-gradient(90deg,transparent,#c8c8d0,transparent);margin:3px 0 9px;}
+
+/* Main grid */
+.main-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+
+/* Base btn */
+.btn{border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700;transition:transform 0.08s,filter 0.08s;outline:none;position:relative;overflow:hidden;}
+.btn:active{transform:scale(0.91);filter:brightness(0.87);}
+
+.btn-round{border-radius:50%;aspect-ratio:1;}
+.btn-num{background:var(--btn-num);color:var(--text);font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,0.13);}
+.btn-fn-r{background:var(--btn-fn);color:var(--text);font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,0.09);}
+.btn-op{background:var(--btn-op);color:#fff;font-size:22px;box-shadow:0 3px 12px rgba(255,149,0,0.38);}
+.btn-op.active-op{background:#fff;color:var(--orange);border:2px solid var(--orange);}
+.btn-zero{border-radius:40px;aspect-ratio:unset;grid-column:span 2;justify-content:flex-start;padding-left:26px;}
+
+/* Sci buttons */
+.btn-sci{background:var(--btn-sci);color:var(--btn-sci-text);border-radius:11px;aspect-ratio:unset;padding:7px 3px 6px;box-shadow:0 2px 6px rgba(30,64,175,0.12);flex-direction:column;gap:0;min-height:54px;justify-content:space-between;}
+.lbl-shift{font-size:9px;font-weight:800;color:var(--orange);text-align:center;min-height:11px;line-height:1;width:100%;}
+.lbl-main{font-size:12px;font-weight:700;color:var(--btn-sci-text);text-align:center;line-height:1.1;}
+.lbl-alpha{font-size:9px;font-weight:800;color:var(--purple);text-align:center;min-height:11px;line-height:1;width:100%;}
+
+/* Layer highlights */
+.shift-active .btn-sci .lbl-main{opacity:0.35;}
+.shift-active .btn-sci .lbl-shift{font-size:13px;color:#d97706;font-weight:900;}
+.alpha-active .btn-sci .lbl-main{opacity:0.35;}
+.alpha-active .btn-sci .lbl-alpha{font-size:13px;color:#6d28d9;font-weight:900;}
+
+/* Fraction button */
+.btn-frac{background:#ede9fe;color:#5b21b6;border-radius:11px;aspect-ratio:unset;padding:7px 3px 6px;box-shadow:0 2px 6px rgba(91,33,182,0.12);flex-direction:column;min-height:54px;justify-content:center;align-items:center;gap:2px;font-size:11px;font-weight:800;}
+.frac-icon{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;line-height:1;}
+.frac-icon .ft{border-bottom:2px solid #5b21b6;padding:0 3px 1px;font-size:10px;}
+.frac-icon .fb{padding:1px 3px 0;font-size:10px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="badge">Calc Pro · Made by <span>ARYAN HARIPAL</span></div>
+
+  <!-- Display -->
+  <div class="display-box" onclick="focusInput()">
+    <!-- Editable input -->
+    <textarea class="input-area" id="inputArea" rows="1" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+      oninput="onInputChange()" onkeydown="onInputKey(event)"></textarea>
+
+    <!-- Result -->
+    <div class="result-area">
+      <div class="fraction-wrap" id="fracWrap" style="display:none;"></div>
+      <div class="result-decimal" id="resultDecimal"></div>
+    </div>
+
+    <button class="sd-btn" onclick="toggleSD(event)">S⇔D</button>
+  </div>
+
+  <!-- Mode bar -->
+  <div class="mode-bar">
+    <button class="mode-btn" id="btnShift" onclick="toggleShift()">SHIFT</button>
+    <button class="mode-btn" id="btnAlpha" onclick="toggleAlpha()">ALPHA</button>
+    <div class="spacer"></div>
+    <button class="mode-btn" id="btnDeg" onclick="toggleMode()">DEG</button>
+  </div>
+
+  <!-- Sci panel -->
+  <div class="sci-panel" id="sciPanel">
+    <button class="btn btn-sci" onclick="trigAct('sin')">
+      <span class="lbl-shift">sin⁻¹</span><span class="lbl-main">sin</span><span class="lbl-alpha">A</span>
+    </button>
+    <button class="btn btn-sci" onclick="trigAct('cos')">
+      <span class="lbl-shift">cos⁻¹</span><span class="lbl-main">cos</span><span class="lbl-alpha">B</span>
+    </button>
+    <button class="btn btn-sci" onclick="trigAct('tan')">
+      <span class="lbl-shift">tan⁻¹</span><span class="lbl-main">tan</span><span class="lbl-alpha">C</span>
+    </button>
+    <button class="btn btn-sci" onclick="trigAct('cot')">
+      <span class="lbl-shift">cot⁻¹</span><span class="lbl-main">cot</span><span class="lbl-alpha">D</span>
+    </button>
+    <button class="btn btn-sci" onclick="trigAct('sec')">
+      <span class="lbl-shift">sec⁻¹</span><span class="lbl-main">sec</span><span class="lbl-alpha">E</span>
+    </button>
+    <button class="btn btn-sci" onclick="trigAct('csc')">
+      <span class="lbl-shift">csc⁻¹</span><span class="lbl-main">cosec</span><span class="lbl-alpha">F</span>
+    </button>
+
+    <!-- x/y fraction button -->
+    <button class="btn btn-frac" onclick="insertFrac()">
+      <span class="lbl-shift">xⁿ/yⁿ</span>
+      <span class="frac-icon"><span class="ft">x</span><span class="fb">y</span></span>
+      <span class="lbl-alpha">Frac</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('sq','sqrt')">
+      <span class="lbl-shift">√x</span><span class="lbl-main">x²</span><span class="lbl-alpha">x²</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('pow','ypow')">
+      <span class="lbl-shift">ʸ√x</span><span class="lbl-main">xʸ</span><span class="lbl-alpha">xʸ</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('log','pow10')">
+      <span class="lbl-shift">10ˣ</span><span class="lbl-main">log</span><span class="lbl-alpha">log</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('ln','exp')">
+      <span class="lbl-shift">eˣ</span><span class="lbl-main">ln</span><span class="lbl-alpha">ln</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('inv','inv')">
+      <span class="lbl-shift">x⁻¹</span><span class="lbl-main">1/x</span><span class="lbl-alpha">1/x</span>
+    </button>
+
+    <button class="btn btn-sci" onclick="mathAct('pi','pi')">
+      <span class="lbl-shift">2π</span><span class="lbl-main">π</span><span class="lbl-alpha">π</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('e','e')">
+      <span class="lbl-shift">e²</span><span class="lbl-main">e</span><span class="lbl-alpha">e</span>
+    </button>
+    <button class="btn btn-sci" onclick="insertText('(')">
+      <span class="lbl-shift">{</span><span class="lbl-main">(</span><span class="lbl-alpha">[</span>
+    </button>
+    <button class="btn btn-sci" onclick="insertText(')')">
+      <span class="lbl-shift">}</span><span class="lbl-main">)</span><span class="lbl-alpha">]</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('fact','fact')">
+      <span class="lbl-shift">nPr</span><span class="lbl-main">x!</span><span class="lbl-alpha">nCr</span>
+    </button>
+    <button class="btn btn-sci" onclick="mathAct('abs','abs')">
+      <span class="lbl-shift">|x|</span><span class="lbl-main">|x|</span><span class="lbl-alpha">|x|</span>
+    </button>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+    <button class="btn btn-round btn-fn-r" onclick="clearAll()" style="font-size:15px;">AC</button>
+    <button class="btn btn-round btn-fn-r" onclick="delChar()" style="font-size:18px;">⌫</button>
+    <button class="btn btn-round btn-fn-r" onclick="insertText('%')" style="font-size:18px;">%</button>
+    <button class="btn btn-round btn-op" id="opDiv" onclick="insertOp('/')">÷</button>
+
+    <button class="btn btn-round btn-num" onclick="insertText('7')">7</button>
+    <button class="btn btn-round btn-num" onclick="insertText('8')">8</button>
+    <button class="btn btn-round btn-num" onclick="insertText('9')">9</button>
+    <button class="btn btn-round btn-op" id="opMul" onclick="insertOp('*')">×</button>
+
+    <button class="btn btn-round btn-num" onclick="insertText('4')">4</button>
+    <button class="btn btn-round btn-num" onclick="insertText('5')">5</button>
+    <button class="btn btn-round btn-num" onclick="insertText('6')">6</button>
+    <button class="btn btn-round btn-op" id="opSub" onclick="insertOp('-')">−</button>
+
+    <button class="btn btn-round btn-num" onclick="insertText('1')">1</button>
+    <button class="btn btn-round btn-num" onclick="insertText('2')">2</button>
+    <button class="btn btn-round btn-num" onclick="insertText('3')">3</button>
+    <button class="btn btn-round btn-op" id="opAdd" onclick="insertOp('+')">+</button>
+
+    <button class="btn btn-num btn-zero" onclick="insertText('0')">0</button>
+    <button class="btn btn-round btn-num" onclick="insertText('.')">.</button>
+    <button class="btn btn-round btn-op" onclick="calculate()">＝</button>
+  </div>
+</div>
+
+<script>
+const inputArea = document.getElementById('inputArea');
+const resultDecimal = document.getElementById('resultDecimal');
+const fracWrap = document.getElementById('fracWrap');
+const panel = document.getElementById('sciPanel');
+const btnShift = document.getElementById('btnShift');
+const btnAlpha = document.getElementById('btnAlpha');
+const btnDeg = document.getElementById('btnDeg');
+
+let isDeg=true, isShift=false, isAlpha=false, showFrac=true, lastResult=null;
+
+// ── Auto resize textarea ──
+function resizeTA(){
+  inputArea.style.height='auto';
+  inputArea.style.height=inputArea.scrollHeight+'px';
+}
+
+function focusInput(){
+  inputArea.focus();
+  const len=inputArea.value.length;
+  inputArea.setSelectionRange(len,len);
+}
+
+// ── Insert at cursor ──
+function insertAtCursor(txt){
+  inputArea.focus();
+  const s=inputArea.selectionStart, e=inputArea.selectionEnd;
+  const v=inputArea.value;
+  inputArea.value=v.slice(0,s)+txt+v.slice(e);
+  const pos=s+txt.length;
+  inputArea.setSelectionRange(pos,pos);
+  resizeTA(); liveCalc();
+}
+
+function insertText(t){ insertAtCursor(t); }
+
+function insertOp(op){
+  const map={'/':'÷','*':'×','+':'+','-':'−'};
+  insertAtCursor(map[op]||op);
+  highlightOp(op);
+}
+
+function insertFrac(){
+  // Insert fraction template: type numerator / denominator
+  insertAtCursor('(/');
+  // Place cursor between ( and /
+  const pos=inputArea.selectionStart-1;
+  inputArea.setSelectionRange(pos,pos);
+  resizeTA(); liveCalc();
+}
+
+function delChar(){
+  inputArea.focus();
+  const s=inputArea.selectionStart, e=inputArea.selectionEnd;
+  if(s!==e){ inputArea.value=inputArea.value.slice(0,s)+inputArea.value.slice(e); inputArea.setSelectionRange(s,s); }
+  else if(s>0){ inputArea.value=inputArea.value.slice(0,s-1)+inputArea.value.slice(s); inputArea.setSelectionRange(s-1,s-1); }
+  resizeTA(); liveCalc();
+}
+
+function clearAll(){
+  inputArea.value=''; lastResult=null;
+  resultDecimal.textContent=''; fracWrap.style.display='none';
+  resizeTA(); clrOps(); resetModes();
+}
+
+// ── Live calculation ──
+function onInputChange(){ resizeTA(); liveCalc(); }
+
+function onInputKey(e){
+  if(e.key==='Enter'){e.preventDefault();calculate();}
+}
+
+function liveCalc(){
+  const raw=inputArea.value.trim();
+  if(!raw){resultDecimal.textContent='';fracWrap.style.display='none';lastResult=null;return;}
+  try{
+    const result=evalExpr(raw);
+    if(result===null||!isFinite(result)||isNaN(result)){resultDecimal.textContent='';fracWrap.style.display='none';return;}
+    lastResult=result;
+    updateResult(result);
+  }catch(e){ resultDecimal.textContent=''; fracWrap.style.display='none'; }
+}
+
+function updateResult(r){
+  // Decimal display
+  const dec=parseFloat(r.toFixed(10)).toString();
+  resultDecimal.textContent='= '+dec;
+  resultDecimal.className='result-decimal';
+  if(dec.length>12) resultDecimal.classList.add('xs');
+  else if(dec.length>8) resultDecimal.classList.add('sm');
+
+  // Fraction display
+  if(showFrac){ displayFraction(r); }
+  else{ fracWrap.style.display='none'; }
+}
+
+function displayFraction(r){
+  const frac=toFraction(r);
+  if(!frac||frac.d===1){ fracWrap.style.display='none'; return; }
+  fracWrap.style.display='flex';
+  const {n,d,whole}=frac;
+  let html='';
+  if(whole!==0) html+=`<span class="frac-whole">${whole}</span>`;
+  html+=`<span class="fraction"><span class="frac-top">${Math.abs(n)}</span><span class="frac-bot">${d}</span></span>`;
+  fracWrap.innerHTML=html;
+}
+
+// Fraction conversion using continued fractions
+function toFraction(x, maxDen=1000){
+  if(Number.isInteger(x)) return {whole:x,n:0,d:1};
+  const neg=x<0; x=Math.abs(x);
+  const wholeP=Math.floor(x); const frac=x-wholeP;
+  if(frac<1e-10) return {whole:neg?-wholeP:wholeP,n:0,d:1};
+  let h1=1,h2=0,k1=0,k2=1,b=frac;
+  for(let i=0;i<30;i++){
+    const a=Math.floor(b);
+    let aux=h1; h1=a*h1+h2; h2=aux;
+    aux=k1; k1=a*k1+k2; k2=aux;
+    if(k1>maxDen) break;
+    if(Math.abs(frac-h1/k1)<1e-9) break;
+    b=1/(b-a);
+  }
+  const n=wholeP*k1+h1;
+  if(k1===1) return null;
+  return{whole:neg?-wholeP:wholeP, n:neg?-h1:h1, d:k1};
+}
+
+// ── Evaluate expression ──
+function evalExpr(raw){
+  let eq=raw
+    .replace(/÷/g,'/')
+    .replace(/×/g,'*')
+    .replace(/−/g,'-')
+    .replace(/\^/g,'**')
+    .replace(/(\d+(?:\.\d+)?)%/g,'($1/100)')
+    .replace(/π/g,'Math.PI')
+    .replace(/\be\b/g,'Math.E');
+
+  // Handle trig with deg/rad
+  const trigFns=['sin','cos','tan','asin','acos','atan'];
+  if(isDeg){
+    trigFns.forEach(f=>{
+      if(['asin','acos','atan'].includes(f)){
+        eq=eq.replace(new RegExp(f+'\\(','g'),`(_fromRad(Math.${f}(`);
+        eq=eq.replace(new RegExp(`_fromRad\\(Math\\.${f}\\(([^)]+)\\))`,'g'),
+          (m,inner)=>`(Math.${f}(${inner})*180/Math.PI)`);
+      } else {
+        eq=eq.replace(new RegExp(f+'\\(','g'),`Math.${f}(Math.PI/180*`);
+      }
+    });
+  } else {
+    trigFns.forEach(f=>{ eq=eq.replace(new RegExp(f+'\\(','g'),`Math.${f}(`); });
+  }
+
+  // Close open parens
+  const o=(eq.match(/\(/g)||[]).length, c=(eq.match(/\)/g)||[]).length;
+  for(let i=0;i<o-c;i++) eq+=')';
+
+  return Function('"use strict";const _fromRad=v=>v*180/Math.PI;return('+eq+')')();
+}
+
+function calculate(){
+  const raw=inputArea.value.trim();
+  if(!raw) return;
+  try{
+    const r=evalExpr(raw);
+    if(!isFinite(r)||isNaN(r)){resultDecimal.textContent='Error';return;}
+    lastResult=r;
+    const ans=parseFloat(r.toFixed(10)).toString();
+    inputArea.value=ans;
+    resizeTA();
+    updateResult(r);
+  }catch(e){ resultDecimal.textContent='Error'; }
+}
+
+// ── S⇔D toggle ──
+function toggleSD(e){
+  e.stopPropagation();
+  showFrac=!showFrac;
+  if(lastResult!==null) updateResult(lastResult);
+}
+
+// ── Modes ──
+function toggleShift(){
+  isShift=!isShift; if(isShift){isAlpha=false; btnAlpha.classList.remove('alpha-on'); panel.classList.remove('alpha-active');}
+  btnShift.classList.toggle('shift-on',isShift);
+  panel.classList.toggle('shift-active',isShift);
+}
+function toggleAlpha(){
+  isAlpha=!isAlpha; if(isAlpha){isShift=false; btnShift.classList.remove('shift-on'); panel.classList.remove('shift-active');}
+  btnAlpha.classList.toggle('alpha-on',isAlpha);
+  panel.classList.toggle('alpha-active',isAlpha);
+}
+function resetModes(){
+  isShift=false; isAlpha=false;
+  btnShift.classList.remove('shift-on'); btnAlpha.classList.remove('alpha-on');
+  panel.classList.remove('shift-active','alpha-active');
+}
+function toggleMode(){
+  isDeg=!isDeg; const t=isDeg?'DEG':'RAD';
+  btnDeg.textContent=t; btnDeg.classList.toggle('deg-on',!isDeg);
+  liveCalc();
+}
+
+// ── Op highlight ──
+function clrOps(){['opDiv','opMul','opSub','opAdd'].forEach(id=>document.getElementById(id).classList.remove('active-op'));}
+function highlightOp(op){clrOps();const m={'/':'opDiv','*':'opMul','-':'opSub','+':'opAdd'};if(m[op])document.getElementById(m[op]).classList.add('active-op');}
+
+// ── Trig ──
+function toRad(v){return isDeg?v*Math.PI/180:v;}
+function fromRad(v){return isDeg?v*180/Math.PI:v;}
+
+function trigAct(fn){
+  const names={sin:'sin',cos:'cos',tan:'tan',cot:'cot',sec:'sec',csc:'csc'};
+  const invNames={sin:'sin⁻¹(',cos:'cos⁻¹(',tan:'tan⁻¹(',cot:'cot⁻¹(',sec:'sec⁻¹(',csc:'csc⁻¹('};
+  if(isShift){
+    // Insert inverse as computed value
+    const raw=inputArea.value.trim();
+    if(raw){
+      try{
+        const v=evalExpr(raw);
+        let result;
+        if(fn==='sin') result=fromRad(Math.asin(v));
+        else if(fn==='cos') result=fromRad(Math.acos(v));
+        else if(fn==='tan') result=fromRad(Math.atan(v));
+        else if(fn==='cot') result=fromRad(Math.atan(1/v));
+        else if(fn==='sec') result=fromRad(Math.acos(1/v));
+        else if(fn==='csc') result=fromRad(Math.asin(1/v));
+        if(isFinite(result)&&!isNaN(result)){
+          inputArea.value=parseFloat(result.toFixed(10)).toString();
+          resizeTA(); liveCalc();
+        }
+      }catch(e){}
+    }
+  } else {
+    // Insert function name + open paren
+    insertAtCursor(fn+'(');
+  }
+  resetModes();
+}
+
+function mathAct(normalFn, shiftFn){
+  const fn=isShift?shiftFn:normalFn;
+  const raw=inputArea.value.trim();
+  let result;
+  switch(fn){
+    case 'sq':    if(raw){try{const v=evalExpr(raw);result=v*v;inputArea.value=parseFloat(result.toFixed(10)).toString();resizeTA();liveCalc();}catch(e){}}break;
+    case 'sqrt':  if(raw){try{const v=evalExpr(raw);result=Math.sqrt(v);inputArea.value=parseFloat(result.toFixed(10)).toString();resizeTA();liveCalc();}catch(e){}}break;
+    case 'pow':   insertAtCursor('^');break;
+    case 'ypow':  insertAtCursor('^(1/');break;
+    case 'log':   insertAtCursor('log(');break;
+    case 'pow10': if(raw){try{const v=evalExpr(raw);result=Math.pow(10,v);inputArea.value=parseFloat(result.toFixed(10)).toString();resizeTA();liveCalc();}catch(e){}}break;
+    case 'ln':    insertAtCursor('ln(');break;
+    case 'exp':   if(raw){try{const v=evalExpr(raw);result=Math.exp(v);inputArea.value=parseFloat(result.toFixed(10)).toString();resizeTA();liveCalc();}catch(e){}}break;
+    case 'inv':   if(raw){try{const v=evalExpr(raw);result=1/v;inputArea.value=parseFloat(result.toFixed(10)).toString();resizeTA();liveCalc();}catch(e){}}break;
+    case 'abs':   if(raw){try{const v=evalExpr(raw);result=Math.abs(v);inputArea.value=parseFloat(result.toFixed(10)).toString();resizeTA();liveCalc();}catch(e){}}break;
+    case 'pi':    insertAtCursor('π');break;
+    case 'e':     insertAtCursor('e');break;
+    case 'fact':  if(raw){try{const v=Math.round(evalExpr(raw));let f=1;for(let i=2;i<=v;i++)f*=i;inputArea.value=f.toString();resizeTA();liveCalc();}catch(e){}}break;
+  }
+  resetModes();
+}
+
+// ── Keyboard support ──
+document.addEventListener('keydown',e=>{
+  if(document.activeElement===inputArea) return; // let textarea handle
+  if(e.key>='0'&&e.key<='9'){ insertText(e.key); inputArea.focus(); }
+  else if(e.key==='.') insertText('.');
+  else if(e.key==='+') insertOp('+');
+  else if(e.key==='-') insertOp('-');
+  else if(e.key==='*') insertOp('*');
+  else if(e.key==='/'){e.preventDefault();insertOp('/');}
+  else if(e.key==='Enter') calculate();
+  else if(e.key==='Escape') clearAll();
+});
+
+// Init
+inputArea.focus();
+resizeTA();
+</script>
+</body>
+</html>
